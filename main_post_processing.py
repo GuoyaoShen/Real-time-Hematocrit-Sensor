@@ -17,84 +17,87 @@ omega = 2*np.pi*freq
 
 
 # Load model param
-# path_param_save = './data/Whole_Blood.npz'
-# path_data_CR_save = './data/CR_Whole_Blood.npz'
+path_param_save_list = ['./data/Whole_Blood.npz', './data/1_5mLPlasma.npz',
+                   './data/3_0mLPlasma.npz', './data/4_5mLPlasma.npz']
+path_data_CR_save_list = ['./data/CR_Whole_Blood.npz', './data/CR_1_5mLPlasma.npz',
+                     './data/CR_3_0mLPlasma.npz', './data/CR_4_5mLPlasma.npz']
+list_name = ['Whole Blood', '1.5mL Plasma', '3.0mL Plasma', '4.5mL Plasma']
 
-# path_param_save = './data/1_5mLPlasma.npz'
-# path_data_CR_save = './data/CR_1_5mLPlasma.npz'
+for idx in range(len(path_param_save_list)):
+    path_param_save = path_param_save_list[idx]
+    path_data_CR_save = path_data_CR_save_list[idx]
 
-# path_param_save = './data/3_0mLPlasma.npz'
-# path_data_CR_save = './data/CR_3_0mLPlasma.npz'
+    print('******', list_name[idx])
 
-path_param_save = './data/4_5mLPlasma.npz'
-path_data_CR_save = './data/CR_4_5mLPlasma.npz'
+    param_model = np.load(path_param_save)
+    param_model = param_model['model_param']  # [cw, cm, ri, rp]
+    data_CR = np.load(path_data_CR_save)
+    data_CR = data_CR['data_CR']  #[N,Nf,2]
+    # print(data_CR.shape)
+    avg_C = np.average(data_CR[..., 0], axis=0)
+    avg_R = np.average(data_CR[..., 1], axis=0)
+    # print(param_model)
 
-param_model = np.load(path_param_save)
-param_model = param_model['model_param']  # [cw, cm, ri, rp]
-data_CR = np.load(path_data_CR_save)
-data_CR = data_CR['data_CR']  #[N,Nf,2]
-# print(data_CR.shape)
-avg_C = np.average(data_CR[..., 0], axis=0)
-avg_R = np.average(data_CR[..., 1], axis=0)
-# print(param_model)
-
-cw = param_model[:, 0]
-cm = param_model[:, 1]
-ri = param_model[:, 2]
-rp = param_model[:, 3]
-
-
-avg_cw = np.average(cw)
-avg_cm = np.average(cm)
-avg_ri = np.average(ri)
-avg_rp = np.average(rp)
+    cw = param_model[:, 0]
+    cm = param_model[:, 1]
+    ri = param_model[:, 2]
+    rp = param_model[:, 3]
 
 
-std_cw = np.std(cw)
-std_cm = np.std(cm)
-std_ri = np.std(ri)
-std_rp = np.std(rp)
+    avg_cw = np.average(cw)
+    avg_cm = np.average(cm)
+    avg_ri = np.average(ri)
+    avg_rp = np.average(rp)
 
 
-print('cw AVG:', avg_cw)
-print('cw STD:', std_cw)
-print('cw STD %:', std_cw/avg_cw * 100)
-print('--------------')
-
-print('cm AVG:', avg_cm)
-print('cm STD:', std_cm)
-print('cm STD %:', std_cm/avg_cm * 100)
-print('--------------')
-
-print('ri AVG:', avg_ri)
-print('ri STD:', std_ri)
-print('ri STD %:', std_ri/avg_ri * 100)
-print('--------------')
-
-print('rp AVG:', avg_rp)
-print('rp STD:', std_rp)
-print('rp STD %:', std_rp/avg_rp * 100)
-print('--------------')
+    std_cw = np.std(cw)
+    std_cm = np.std(cm)
+    std_ri = np.std(ri)
+    std_rp = np.std(rp)
 
 
-# ============== Visualize
-# system impedance
-Z = avg_R + 1/(j*omega*avg_C)
-ZReal = np.real(Z)
-ZImag = np.imag(Z)
-ZFit = model_simplified(freq, avg_cw, avg_cm, avg_ri, avg_rp)
+    print('cw AVG:', avg_cw)
+    print('cw STD:', std_cw)
+    print('cw STD %:', std_cw/avg_cw * 100)
+    print('--------------')
 
-plt.subplot(121)
-plt.plot(freq, ZReal, "k.", label="Z_initial")
-plt.plot(freq, np.real(ZFit), label="Best fit")
-plt.ylabel("Real part of y")
-plt.xlabel("x")
-plt.legend()
+    print('cm AVG:', avg_cm)
+    print('cm STD:', std_cm)
+    print('cm STD %:', std_cm/avg_cm * 100)
+    print('--------------')
 
-plt.subplot(122)
-plt.plot(freq, ZImag, "k.")
-plt.plot(freq, np.imag(ZFit))
-plt.ylabel("Imaginary part of y")
-plt.xlabel("x")
+    print('ri AVG:', avg_ri)
+    print('ri STD:', std_ri)
+    print('ri STD %:', std_ri/avg_ri * 100)
+    print('--------------')
 
-plt.show()
+    print('rp AVG:', avg_rp)
+    print('rp STD:', std_rp)
+    print('rp STD %:', std_rp/avg_rp * 100)
+    print('--------------')
+    print('=========================================')
+
+
+    # ============== Visualize
+    plt.figure(idx)
+
+    # system impedance
+    Z = avg_R + 1/(j*omega*avg_C)
+    ZReal = np.real(Z)
+    ZImag = np.imag(Z)
+    ZFit = model_simplified(freq, avg_cw, avg_cm, avg_ri, avg_rp)
+
+    plt.subplot(121)
+    plt.plot(freq, ZReal, "k.", label="Z_initial")
+    plt.plot(freq, np.real(ZFit), label="Best fit")
+    plt.ylabel("Real part of y")
+    plt.xlabel("x")
+    plt.legend()
+
+    plt.subplot(122)
+    plt.plot(freq, ZImag, "k.")
+    plt.plot(freq, np.imag(ZFit))
+    plt.ylabel("Imaginary part of y")
+    plt.xlabel("x")
+
+    plt.show()
