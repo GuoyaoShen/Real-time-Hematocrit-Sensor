@@ -23,6 +23,8 @@ path_data_CR_save_list = ['./data/CR_Whole_Blood.npz', './data/CR_1_5mLPlasma.np
                      './data/CR_3_0mLPlasma.npz', './data/CR_4_5mLPlasma.npz']
 list_name = ['Whole Blood', '1.5mL Plasma', '3.0mL Plasma', '4.5mL Plasma']
 
+model_param = np.zeros((4,4))  #[N_param, N_dilution] (cw,cm,ri,rp)
+model_param_std = np.zeros((4,4))  #[N_param, N_dilution] (cw,cm,ri,rp)
 for idx in range(len(path_param_save_list)):
     path_param_save = path_param_save_list[idx]
     path_data_CR_save = path_data_CR_save_list[idx]
@@ -77,27 +79,52 @@ for idx in range(len(path_param_save_list)):
     print('--------------')
     print('=========================================')
 
+    model_param[0, idx] = avg_cw
+    model_param[1, idx] = avg_cm
+    model_param[2, idx] = avg_ri
+    model_param[3, idx] = avg_rp
+
+    model_param_std[0, idx] = std_cw
+    model_param_std[1, idx] = std_cm
+    model_param_std[2, idx] = std_ri
+    model_param_std[3, idx] = std_rp
+
 
     # ============== Visualize
-    plt.figure(idx)
+    # plt.figure(idx)
+    #
+    # # system impedance
+    # Z = avg_R + 1/(j*omega*avg_C)
+    # ZReal = np.real(Z)
+    # ZImag = np.imag(Z)
+    # ZFit = model_simplified(freq, avg_cw, avg_cm, avg_ri, avg_rp)
+    #
+    # plt.subplot(121)
+    # plt.plot(freq, ZReal, "k.", label="Z_initial")
+    # plt.plot(freq, np.real(ZFit), label="Best fit")
+    # plt.ylabel("Real part of y")
+    # plt.xlabel("x")
+    # plt.legend()
+    #
+    # plt.subplot(122)
+    # plt.plot(freq, ZImag, "k.")
+    # plt.plot(freq, np.imag(ZFit))
+    # plt.ylabel("Imaginary part of y")
+    # plt.xlabel("x")
+    #
+    # plt.show()
 
-    # system impedance
-    Z = avg_R + 1/(j*omega*avg_C)
-    ZReal = np.real(Z)
-    ZImag = np.imag(Z)
-    ZFit = model_simplified(freq, avg_cw, avg_cm, avg_ri, avg_rp)
+model_param_diff = np.zeros((4,4))
+model_param_diff[:,1:] = np.diff(model_param) / model_param[:,1:] * 100
 
-    plt.subplot(121)
-    plt.plot(freq, ZReal, "k.", label="Z_initial")
-    plt.plot(freq, np.real(ZFit), label="Best fit")
-    plt.ylabel("Real part of y")
-    plt.xlabel("x")
-    plt.legend()
-
-    plt.subplot(122)
-    plt.plot(freq, ZImag, "k.")
-    plt.plot(freq, np.imag(ZFit))
-    plt.ylabel("Imaginary part of y")
-    plt.xlabel("x")
-
+list_param_name = ['Cw', 'Cm', 'Ri', 'Rp']
+list_param_name_rate = ['Cw Change in Percentage (%)', 'Cm Change in Percentage (%)',
+                        'Ri Change in Percentage (%)', 'Rp Change in Percentage (%)']
+for idx_param in range(model_param.shape[0]):
+    plt.figure(idx_param)
+    # plt.title(list_param_name[idx_param])
+    # plt.plot(np.arange(model_param.shape[1]), model_param[idx_param], c='r', marker='^')
+    # plt.bar(np.arange(model_param.shape[1]), model_param[idx_param], yerr=model_param_std[0])
+    plt.title(list_param_name_rate[idx_param])
+    plt.plot(np.arange(model_param.shape[1]), model_param_diff[idx_param], c='r', marker='^')
     plt.show()
